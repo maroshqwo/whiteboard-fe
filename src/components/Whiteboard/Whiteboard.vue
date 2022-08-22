@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import WhiteboardContent from "@/components/Whiteboard/WhiteboardContent.vue";
 import WhiteboardControls from "@/components/Whiteboard/WhiteboardControls.vue";
+import WhiteboardDrawer from "@/components/Whiteboard/WhiteboardDrawer.vue";
 import { ref } from "vue";
 
 const whiteboard = ref();
@@ -33,6 +34,7 @@ const props = defineProps({
       :parent-height="props.height"
     />
     <WhiteboardControls />
+    <WhiteboardDrawer />
   </div>
 </template>
 

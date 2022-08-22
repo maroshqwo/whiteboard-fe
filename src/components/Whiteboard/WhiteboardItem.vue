@@ -3,6 +3,8 @@ import { ref, onMounted, computed } from "vue";
 import store from "@/store";
 import { Card } from "@/types";
 import { createDOMCompilerError } from "@vue/compiler-dom";
+import ItemResizable from "./ItemResizable.vue";
+import { getNumberFromPx } from "@/utils";
 
 const item = ref();
 const whiteboard = computed(() => store.getters.getBoard);
@@ -11,18 +13,14 @@ const mouseCoords = {
   y: 0,
 };
 
-const getNumberFromPx = (px: string) => {
-  return parseInt(px.replace("px", ""), 10);
-};
-
 const possition = (axis: string, pos: number) => {
   if (axis === "x") {
-    if (pos + card.value.width < 36) return 36 - card.value.width;
-    if (pos - 36 > whiteboard.value.width) return whiteboard.value.width - 36;
+    if (pos < 24 - card.value.width) return 24 - card.value.width;
+    if (pos > whiteboard.value.width - 24) return whiteboard.value.width - 24;
     return pos;
   } else {
-    if (pos + card.value.height < 36) return 36 - card.value.height;
-    if (pos - 36 > whiteboard.value.height) return whiteboard.value.height - 36;
+    if (pos < 36 - card.value.height) return 24 - card.value.height;
+    if (pos > whiteboard.value.height - 24) return whiteboard.value.height - 24;
     return pos;
   }
 };
@@ -54,92 +52,6 @@ const itemDragEnd = (e: any) => {
   });
 };
 
-const resizeStart = (e: any) => {
-  e.stopPropagation();
-  mouseCoords.x = e.clientX;
-  mouseCoords.y = e.clientY;
-};
-
-const resizeEnd = async (e: any) => {
-  e.stopPropagation();
-  const heightBefore = getNumberFromPx(item.value.style.height);
-  const widthBefore = getNumberFromPx(item.value.style.width);
-  const xBefore = getNumberFromPx(item.value.style.left);
-  const yBefore = getNumberFromPx(item.value.style.top);
-  if (e.target.classList.contains("rb")) {
-    await store.dispatch("setWidthCard", {
-      id: card.value.id,
-      width: widthBefore + (e.clientX - mouseCoords.x),
-    });
-    await store.dispatch("setHeightCard", {
-      id: card.value.id,
-      height: heightBefore + (e.clientY - mouseCoords.y),
-    });
-    store.dispatch("setXCard", {
-      id: card.value.id,
-      x: possition("x", xBefore),
-    });
-    store.dispatch("setYCard", {
-      id: card.value.id,
-      y: possition("y", yBefore),
-    });
-  }
-  if (e.target.classList.contains("lb")) {
-    await store.dispatch("setWidthCard", {
-      id: card.value.id,
-      width: widthBefore - (e.clientX - mouseCoords.x),
-    });
-    await store.dispatch("setHeightCard", {
-      id: card.value.id,
-      height: heightBefore + (e.clientY - mouseCoords.y),
-    });
-    store.dispatch("setXCard", {
-      id: card.value.id,
-      x: possition("x", xBefore + (e.clientX - mouseCoords.x)),
-    });
-    store.dispatch("setYCard", {
-      id: card.value.id,
-      y: possition("y", yBefore),
-    });
-  }
-  if (e.target.classList.contains("lt")) {
-    await store.dispatch("setWidthCard", {
-      id: card.value.id,
-      width: widthBefore - (e.clientX - mouseCoords.x),
-    });
-    await store.dispatch("setHeightCard", {
-      id: card.value.id,
-      height: heightBefore - (e.clientY - mouseCoords.y),
-    });
-    store.dispatch("setXCard", {
-      id: card.value.id,
-      x: possition("x", xBefore + (e.clientX - mouseCoords.x)),
-    });
-    store.dispatch("setYCard", {
-      id: card.value.id,
-      y: possition("y", yBefore + (e.clientY - mouseCoords.y)),
-    });
-  }
-  if (e.target.classList.contains("rt")) {
-    await store.dispatch("setWidthCard", {
-      id: card.value.id,
-      width: widthBefore + (e.clientX - mouseCoords.x),
-    });
-    await store.dispatch("setHeightCard", {
-      id: card.value.id,
-      height: heightBefore - (e.clientY - mouseCoords.y),
-    });
-    store.dispatch("setXCard", {
-      id: card.value.id,
-      x: possition("x", xBefore),
-    });
-    store.dispatch("setYCard", {
-      id: card.value.id,
-      y: possition("y", yBefore + (e.clientY - mouseCoords.y)),
-    });
-  }
-};
-
 const props = defineProps({
   card: {
     type: Object,
@@ -168,44 +80,14 @@ const handleClick = () => {
       backgroundColor: card.color,
       width: `${card.width}px`,
       height: `${card.height}px`,
+      zIndex: card.active ? 100 : 0,
     }"
     @dragstart="itemDragStart"
     @dragend="itemDragEnd"
     @click="handleClick"
   >
     WHITEBOARD ITEM
-    <div
-      v-if="card.active"
-      class="resize lb"
-      draggable="true"
-      disabled="true"
-      @dragstart="resizeStart"
-      @dragend="resizeEnd"
-    />
-    <div
-      v-if="card.active"
-      class="resize lt"
-      draggable="true"
-      disabled="true"
-      @dragstart="resizeStart"
-      @dragend="resizeEnd"
-    />
-    <div
-      v-if="card.active"
-      class="resize rt"
-      draggable="true"
-      disabled="true"
-      @dragstart="resizeStart"
-      @dragend="resizeEnd"
-    />
-    <div
-      v-if="card.active"
-      class="resize rb"
-      draggable="true"
-      disabled="true"
-      @dragstart="resizeStart"
-      @dragend="resizeEnd"
-    />
+    <ItemResizable :id="card.id" :card="card" />
   </div>
 </template>
 
@@ -213,39 +95,8 @@ const handleClick = () => {
 .whiteboard-item {
   position: absolute;
 }
-.active {
-  z-index: 1001;
-  outline: 3px solid rgb(12, 155, 180);
-}
+
 .dragging {
   z-index: -10;
-}
-.resize {
-  position: absolute;
-  box-sizing: border-box;
-  width: 16px;
-  height: 16px;
-  border: 4px solid rgb(20, 136, 157);
-  background-color: rgb(12, 155, 180);
-}
-.lt {
-  left: -8px;
-  top: -8px;
-  cursor: se-resize;
-}
-.lb {
-  left: -8px;
-  bottom: -8px;
-  cursor: sw-resize;
-}
-.rt {
-  right: -8px;
-  top: -8px;
-  cursor: sw-resize;
-}
-.rb {
-  right: -8px;
-  bottom: -8px;
-  cursor: se-resize;
 }
 </style>
