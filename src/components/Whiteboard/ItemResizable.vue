@@ -18,10 +18,18 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  square: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const card = computed((): Card => {
   return props.card as Card;
+});
+
+const square = computed((): boolean => {
+  return props.square as boolean;
 });
 const whiteboard = computed(() => store.getters.getBoard);
 
@@ -45,121 +53,248 @@ const resizeStart = (e: any) => {
 
 const resizeEnd = async (e: any) => {
   e.stopPropagation();
-  const heightBefore = card.value.height;
   const widthBefore = card.value.width;
+  const heightBefore = square.value ? widthBefore : card.value.height;
   const xBefore = card.value.x;
   const yBefore = card.value.y;
-  if (e.target.classList.contains("rb")) {
-    await store.dispatch("setWidthCard", {
-      id: card.value.id,
-      width: widthBefore + (e.clientX - mouseCoords.x),
-    });
-    await store.dispatch("setHeightCard", {
-      id: card.value.id,
-      height: heightBefore + (e.clientY - mouseCoords.y),
-    });
-    store.dispatch("setXCard", {
-      id: card.value.id,
-      x: possition("x", xBefore),
-    });
-    store.dispatch("setYCard", {
-      id: card.value.id,
-      y: possition("y", yBefore),
-    });
+  if (!square.value) {
+    if (e.target.classList.contains("rb")) {
+      await store.dispatch("setWidthCard", {
+        id: card.value.id,
+        width: widthBefore + (e.clientX - mouseCoords.x),
+      });
+      await store.dispatch("setHeightCard", {
+        id: card.value.id,
+        height: heightBefore + (e.clientY - mouseCoords.y),
+      });
+    }
+    if (e.target.classList.contains("lb")) {
+      await store.dispatch("setWidthCard", {
+        id: card.value.id,
+        width: widthBefore - (e.clientX - mouseCoords.x),
+      });
+      await store.dispatch("setHeightCard", {
+        id: card.value.id,
+        height: heightBefore + (e.clientY - mouseCoords.y),
+      });
+      store.dispatch("setYCard", {
+        id: card.value.id,
+        y: possition("y", yBefore),
+      });
+    }
+    if (e.target.classList.contains("lt")) {
+      await store.dispatch("setWidthCard", {
+        id: card.value.id,
+        width: widthBefore - (e.clientX - mouseCoords.x),
+      });
+      await store.dispatch("setHeightCard", {
+        id: card.value.id,
+        height: heightBefore - (e.clientY - mouseCoords.y),
+      });
+      store.dispatch("setXCard", {
+        id: card.value.id,
+        x: possition("x", xBefore + (e.clientX - mouseCoords.x)),
+      });
+      store.dispatch("setYCard", {
+        id: card.value.id,
+        y: possition("y", yBefore + (e.clientY - mouseCoords.y)),
+      });
+    }
+    if (e.target.classList.contains("rt")) {
+      await store.dispatch("setWidthCard", {
+        id: card.value.id,
+        width: widthBefore + (e.clientX - mouseCoords.x),
+      });
+      await store.dispatch("setHeightCard", {
+        id: card.value.id,
+        height: heightBefore - (e.clientY - mouseCoords.y),
+      });
+      store.dispatch("setXCard", {
+        id: card.value.id,
+        x: possition("x", xBefore),
+      });
+    }
+    if (e.target.classList.contains("t")) {
+      await store.dispatch("setHeightCard", {
+        id: card.value.id,
+        height: widthBefore - (e.clientY - mouseCoords.y),
+      });
+      store.dispatch("setYCard", {
+        id: card.value.id,
+        y: possition("y", yBefore + (e.clientY - mouseCoords.y)),
+      });
+    }
+    if (e.target.classList.contains("b")) {
+      await store.dispatch("setHeightCard", {
+        id: card.value.id,
+        height: heightBefore + (e.clientY - mouseCoords.y),
+      });
+      store.dispatch("setYCard", {
+        id: card.value.id,
+        y: possition("y", yBefore),
+      });
+    }
+    if (e.target.classList.contains("l")) {
+      await store.dispatch("setWidthCard", {
+        id: card.value.id,
+        width: widthBefore - (e.clientX - mouseCoords.x),
+      });
+      store.dispatch("setXCard", {
+        id: card.value.id,
+        x: possition("x", xBefore + (e.clientX - mouseCoords.x)),
+      });
+    }
+    if (e.target.classList.contains("r")) {
+      await store.dispatch("setWidthCard", {
+        id: card.value.id,
+        width: widthBefore + (e.clientX - mouseCoords.x),
+      });
+      store.dispatch("setXCard", {
+        id: card.value.id,
+        x: possition("x", xBefore),
+      });
+    }
   }
-  if (e.target.classList.contains("lb")) {
-    await store.dispatch("setWidthCard", {
-      id: card.value.id,
-      width: widthBefore - (e.clientX - mouseCoords.x),
-    });
-    await store.dispatch("setHeightCard", {
-      id: card.value.id,
-      height: heightBefore + (e.clientY - mouseCoords.y),
-    });
-    store.dispatch("setXCard", {
-      id: card.value.id,
-      x: possition("x", xBefore + (e.clientX - mouseCoords.x)),
-    });
-    store.dispatch("setYCard", {
-      id: card.value.id,
-      y: possition("y", yBefore),
-    });
-  }
-  if (e.target.classList.contains("lt")) {
-    await store.dispatch("setWidthCard", {
-      id: card.value.id,
-      width: widthBefore - (e.clientX - mouseCoords.x),
-    });
-    await store.dispatch("setHeightCard", {
-      id: card.value.id,
-      height: heightBefore - (e.clientY - mouseCoords.y),
-    });
-    store.dispatch("setXCard", {
-      id: card.value.id,
-      x: possition("x", xBefore + (e.clientX - mouseCoords.x)),
-    });
-    store.dispatch("setYCard", {
-      id: card.value.id,
-      y: possition("y", yBefore + (e.clientY - mouseCoords.y)),
-    });
-  }
-  if (e.target.classList.contains("rt")) {
-    await store.dispatch("setWidthCard", {
-      id: card.value.id,
-      width: widthBefore + (e.clientX - mouseCoords.x),
-    });
-    await store.dispatch("setHeightCard", {
-      id: card.value.id,
-      height: heightBefore - (e.clientY - mouseCoords.y),
-    });
-    store.dispatch("setXCard", {
-      id: card.value.id,
-      x: possition("x", xBefore),
-    });
-    store.dispatch("setYCard", {
-      id: card.value.id,
-      y: possition("y", yBefore + (e.clientY - mouseCoords.y)),
-    });
-  }
-  if (e.target.classList.contains("t")) {
-    await store.dispatch("setHeightCard", {
-      id: card.value.id,
-      height: heightBefore - (e.clientY - mouseCoords.y),
-    });
-    store.dispatch("setYCard", {
-      id: card.value.id,
-      y: possition("y", yBefore + (e.clientY - mouseCoords.y)),
-    });
-  }
-  if (e.target.classList.contains("b")) {
-    await store.dispatch("setHeightCard", {
-      id: card.value.id,
-      height: heightBefore + (e.clientY - mouseCoords.y),
-    });
-    store.dispatch("setYCard", {
-      id: card.value.id,
-      y: possition("y", yBefore),
-    });
-  }
-  if (e.target.classList.contains("l")) {
-    await store.dispatch("setWidthCard", {
-      id: card.value.id,
-      width: widthBefore - (e.clientX - mouseCoords.x),
-    });
-    store.dispatch("setXCard", {
-      id: card.value.id,
-      x: possition("x", xBefore + (e.clientX - mouseCoords.x)),
-    });
-  }
-  if (e.target.classList.contains("r")) {
-    await store.dispatch("setWidthCard", {
-      id: card.value.id,
-      width: widthBefore + (e.clientX - mouseCoords.x),
-    });
-    store.dispatch("setXCard", {
-      id: card.value.id,
-      x: possition("x", xBefore),
-    });
+
+  //SEPARATE LOGIC IF SQUARE
+
+  if (square.value) {
+    if (e.target.classList.contains("rb")) {
+      await store.dispatch("setWidthCard", {
+        id: card.value.id,
+        width:
+          Math.abs(e.clientY - mouseCoords.y) <
+          Math.abs(e.clientX - mouseCoords.x)
+            ? widthBefore + (e.clientX - mouseCoords.x)
+            : widthBefore + (e.clientY - mouseCoords.y),
+      });
+      await store.dispatch("setHeightCard", {
+        id: card.value.id,
+        height:
+          Math.abs(e.clientY - mouseCoords.y) <
+          Math.abs(e.clientX - mouseCoords.x)
+            ? widthBefore + (e.clientX - mouseCoords.x)
+            : widthBefore + (e.clientY - mouseCoords.y),
+      });
+    }
+    if (e.target.classList.contains("lb")) {
+      await store.dispatch("setWidthCard", {
+        id: card.value.id,
+        width:
+          Math.abs(e.clientY - mouseCoords.y) <
+          Math.abs(e.clientX - mouseCoords.x)
+            ? widthBefore - (e.clientX - mouseCoords.x)
+            : widthBefore + (e.clientY - mouseCoords.y),
+      });
+      await store.dispatch("setHeightCard", {
+        id: card.value.id,
+        height:
+          Math.abs(e.clientY - mouseCoords.y) <
+          Math.abs(e.clientX - mouseCoords.x)
+            ? widthBefore - (e.clientX - mouseCoords.x)
+            : widthBefore + (e.clientY - mouseCoords.y),
+      });
+      store.dispatch("setXCard", {
+        id: card.value.id,
+        x: possition("x", xBefore + (e.clientX - mouseCoords.x)),
+      });
+    }
+    if (e.target.classList.contains("lt")) {
+      await store.dispatch("setWidthCard", {
+        id: card.value.id,
+        width:
+          Math.abs(e.clientY - mouseCoords.y) <
+          Math.abs(e.clientX - mouseCoords.x)
+            ? widthBefore - (e.clientX - mouseCoords.x)
+            : widthBefore - (e.clientY - mouseCoords.y),
+      });
+      await store.dispatch("setHeightCard", {
+        id: card.value.id,
+        height:
+          Math.abs(e.clientY - mouseCoords.y) <
+          Math.abs(e.clientX - mouseCoords.x)
+            ? widthBefore - (e.clientX - mouseCoords.x)
+            : widthBefore - (e.clientY - mouseCoords.y),
+      });
+      store.dispatch("setXCard", {
+        id: card.value.id,
+        x: possition("x", xBefore + (e.clientX - mouseCoords.x)),
+      });
+      store.dispatch("setYCard", {
+        id: card.value.id,
+        y: possition("y", yBefore + (e.clientY - mouseCoords.y)),
+      });
+    }
+    if (e.target.classList.contains("rt")) {
+      await store.dispatch("setWidthCard", {
+        id: card.value.id,
+        width:
+          Math.abs(e.clientY - mouseCoords.y) <
+          Math.abs(e.clientX - mouseCoords.x)
+            ? widthBefore + (e.clientX - mouseCoords.x)
+            : widthBefore - (e.clientY - mouseCoords.y),
+      });
+      await store.dispatch("setHeightCard", {
+        id: card.value.id,
+        height:
+          Math.abs(e.clientY - mouseCoords.y) <
+          Math.abs(e.clientX - mouseCoords.x)
+            ? widthBefore + (e.clientX - mouseCoords.x)
+            : widthBefore - (e.clientY - mouseCoords.y),
+      });
+      store.dispatch("setYCard", {
+        id: card.value.id,
+        y: possition("y", yBefore + (e.clientY - mouseCoords.y)),
+      });
+    }
+    if (e.target.classList.contains("t")) {
+      await store.dispatch("setWidthCard", {
+        id: card.value.id,
+        width: widthBefore - (e.clientY - mouseCoords.y),
+      });
+      await store.dispatch("setHeightCard", {
+        id: card.value.id,
+        height: widthBefore - (e.clientY - mouseCoords.y),
+      });
+      store.dispatch("setYCard", {
+        id: card.value.id,
+        y: possition("y", yBefore + (e.clientY - mouseCoords.y)),
+      });
+    }
+    if (e.target.classList.contains("b")) {
+      await store.dispatch("setWidthCard", {
+        id: card.value.id,
+        width: heightBefore + (e.clientY - mouseCoords.y),
+      });
+      await store.dispatch("setHeightCard", {
+        id: card.value.id,
+        height: heightBefore + (e.clientY - mouseCoords.y),
+      });
+    }
+    if (e.target.classList.contains("l")) {
+      await store.dispatch("setWidthCard", {
+        id: card.value.id,
+        width: widthBefore - (e.clientX - mouseCoords.x),
+      });
+      await store.dispatch("setHeightCard", {
+        id: card.value.id,
+        height: widthBefore - (e.clientX - mouseCoords.x),
+      });
+      store.dispatch("setXCard", {
+        id: card.value.id,
+        x: possition("x", xBefore + (e.clientX - mouseCoords.x)),
+      });
+    }
+    if (e.target.classList.contains("r")) {
+      await store.dispatch("setWidthCard", {
+        id: card.value.id,
+        width: widthBefore + (e.clientX - mouseCoords.x),
+      });
+      await store.dispatch("setHeightCard", {
+        id: card.value.id,
+        height: widthBefore + (e.clientX - mouseCoords.x),
+      });
+    }
   }
 };
 </script>

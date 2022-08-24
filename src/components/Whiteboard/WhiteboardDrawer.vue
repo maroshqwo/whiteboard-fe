@@ -1,10 +1,28 @@
 <script lang="ts" setup>
 import { onBeforeMount, onMounted, computed, ref } from "vue";
+import store from "@/store";
+import WhiteboardDrawerCard from "@/components/Whiteboard/WhiteboardDrawerCard.vue";
 
 const show = ref(false);
+const displayCards = ref(false);
+const displayGroups = ref(false);
+// sort cards by z-index
+const cards = computed(() => {
+  return store.getters.getCards.sort((a: any, b: any) => {
+    return b.zIndex - a.zIndex;
+  });
+});
 
 const toggleShow = () => {
   show.value = !show.value;
+};
+
+const toggleDisplayCards = () => {
+  displayCards.value = !displayCards.value;
+};
+
+const toggleDisplayGroups = () => {
+  displayGroups.value = !displayGroups.value;
 };
 </script>
 
@@ -19,7 +37,23 @@ const toggleShow = () => {
       class="whiteboard-drawer-content"
       :style="{ width: '300px' }"
     >
-      Functionalities
+      <h2>
+        Cards<button class="chevronButton" @click="toggleDisplayCards">
+          {{ displayCards ? "👇" : "👈" }}
+        </button>
+      </h2>
+      <div v-if="displayCards">
+        <WhiteboardDrawerCard
+          v-for="card in cards"
+          :key="card.id"
+          :card="card"
+        />
+      </div>
+      <h2>
+        Groups<button class="chevronButton" @click="toggleDisplayGroups">
+          {{ displayGroups ? "👇" : "👈" }}
+        </button>
+      </h2>
     </div>
   </div>
 </template>
@@ -31,9 +65,11 @@ const toggleShow = () => {
   top: -2px;
   height: 100%;
   width: 376px;
+  padding-right: 24px;
   border: 2px solid rgb(126, 45, 252);
-  background-color: rgb(183, 142, 248);
+  background-color: #ddd;
   display: flex;
+  overflow-y: scroll;
 }
 .whiteboard-drawer-content {
   flex: 1;
@@ -42,11 +78,23 @@ const toggleShow = () => {
 }
 .toggleDrawerButton {
   position: relative;
-  top: calc(50% - 40px);
-  right: 12px;
+  right: 2px;
   width: 24px;
-  height: 80px;
+  height: 100%;
+  margin-right: 8px;
   border: 2px solid rgb(126, 45, 252);
   background-color: #fff;
+}
+h2 {
+  text-align: left;
+}
+.chevronButton {
+  position: relative;
+  font-size: 24px;
+  width: 24px;
+  height: 16px;
+  background-color: transparent;
+  outline: none;
+  border: none !important;
 }
 </style>

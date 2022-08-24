@@ -2,9 +2,11 @@
 import WhiteboardContent from "@/components/Whiteboard/WhiteboardContent.vue";
 import WhiteboardControls from "@/components/Whiteboard/WhiteboardControls.vue";
 import WhiteboardDrawer from "@/components/Whiteboard/WhiteboardDrawer.vue";
-import { ref } from "vue";
+import { computed, ref } from "vue";
+import store from "@/store";
 
 const whiteboard = ref();
+const deleteMode = computed(() => store.getters.getDeleteMode);
 
 const props = defineProps({
   height: {
@@ -25,6 +27,7 @@ const props = defineProps({
     :style="{
       height: `${props.height}px`,
       width: `${props.width}px`,
+      cursor: deleteMode ? 'not-allowed' : 'default',
     }"
   >
     <WhiteboardContent

@@ -1,4 +1,4 @@
-import { WhiteboardState, Card } from "@/types";
+import { WhiteboardState, Card, CardTemplate } from "@/types";
 
 const WhiteboardModule = {
   state: (): WhiteboardState => ({
@@ -11,27 +11,45 @@ const WhiteboardModule = {
         x: 600,
         y: 200,
         active: false,
+        edit: false,
         boardId: 1,
+        type: "sticker",
+        zIndex: 1,
+        content: [
+          {
+            id: 1,
+            cardId: 1,
+            fontSize: 20,
+            fontColor: "#E4D9FF",
+            x: 10,
+            y: 10,
+            text: "Sticker text here!",
+          },
+        ],
       },
       {
         id: 2,
         width: 100,
         height: 200,
-        color: "#888888",
+        color: "transparent",
         x: 400,
         y: 300,
         active: true,
+        edit: false,
         boardId: 1,
-      },
-      {
-        id: 3,
-        width: 200,
-        height: 200,
-        color: "#aaa",
-        x: 200,
-        y: 100,
-        active: false,
-        boardId: 1,
+        zIndex: 2,
+        type: "emoji",
+        content: [
+          {
+            id: 2,
+            cardId: 2,
+            fontSize: 20,
+            fontColor: "#E4D9FF",
+            x: 10,
+            y: 10,
+            text: "😹",
+          },
+        ],
       },
     ],
     board: {
@@ -44,7 +62,17 @@ const WhiteboardModule = {
   }),
   mutations: {
     addCard(state: WhiteboardState, card: Card) {
-      state.cards.push(card);
+      state.cards.push(Object.assign(card));
+    },
+    updateCardContent(
+      state: WhiteboardState,
+      payload: { cardId: number; contentId: number; newText: string }
+    ) {
+      const card = state.cards.find((c) => c.id === payload.cardId);
+      if (!card) return;
+      const content = card.content.find((c) => c.id === payload.contentId);
+      if (!content) return;
+      content.text = payload.newText;
     },
     deleteCard(state: WhiteboardState, id: number) {
       state.cards = state.cards.filter((c) => c.id !== id);
@@ -55,6 +83,7 @@ const WhiteboardModule = {
           c.active = true;
         } else {
           c.active = false;
+          c.edit = false;
         }
         return c;
       });
@@ -81,7 +110,17 @@ const WhiteboardModule = {
     ) {
       state.cards = state.cards.map((c) => {
         if (c.id === id) {
-          c.width = width;
+          c.width = width > 0 ? width : -width;
+        }
+        return c;
+      });
+    },
+    setEditCard(state: WhiteboardState, id: number) {
+      state.cards = state.cards.map((c) => {
+        if (c.id === id) {
+          c.edit = true;
+        } else {
+          c.edit = false;
         }
         return c;
       });
@@ -92,7 +131,7 @@ const WhiteboardModule = {
     ) {
       state.cards = state.cards.map((c) => {
         if (c.id === id) {
-          c.height = height;
+          c.height = height > 0 ? height : -height;
         }
         return c;
       });
@@ -111,14 +150,53 @@ const WhiteboardModule = {
     },
   },
   actions: {
-    addCard(context: any, card: Card) {
-      context.commit("addCard", card);
+    addCard(context: any, card: CardTemplate) {
+      console.log(context.state.cards);
+      let newID = 0;
+      context.state.cards.forEach((element: Card) => {
+        if (element.id >= newID) {
+          newID = element.id + 1;
+        }
+      });
+      let contents = card.content.map((content: any) => {
+        return {
+          id: content.id,
+          cardId: newID,
+          fontSize: content.fontSize,
+          fontColor: content.fontColor,
+          x: content.x,
+          y: content.y,
+          text: content.text,
+        };
+      });
+
+      let newCard = {
+        id: newID,
+        width: 200,
+        height: 100,
+        color: card.color,
+        content: contents,
+        x: 200,
+        y: 200,
+        active: false,
+        edit: false,
+        boardId: 1,
+        zIndex: context.state.cards.length + 1,
+        type: card.type,
+      };
+      context.commit("addCard", { ...newCard });
+    },
+    updateCardContent(context: any, updated: any) {
+      context.commit("updateCardContent", updated);
     },
     deleteCard(context: any, id: number) {
       context.commit("deleteCard", id);
     },
     setActiveCard(context: any, id: number) {
       context.commit("setActiveCard", id);
+    },
+    setEditCard(context: any, id: number) {
+      context.commit("setEditCard", id);
     },
     setXCard(context: any, { id, x }: { id: number; x: number }) {
       context.commit("setXCard", { id, x });
@@ -133,11 +211,9 @@ const WhiteboardModule = {
       context: any,
       { id, height }: { id: number; height: number }
     ) {
-      console.log(height);
       context.commit("setHeightCard", { id, height });
     },
     setXBoard(context: any, x: number) {
-      console.log("hello");
       context.commit("setXBoard", x);
     },
     setYBoard(context: any, y: number) {

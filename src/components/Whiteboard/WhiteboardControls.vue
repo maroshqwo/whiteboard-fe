@@ -1,24 +1,85 @@
 <script lang="ts" setup>
 import store from "@/store";
+import CardTemplate from "@/components/Whiteboard/CardTemplate.vue";
+import { computed, ref } from "vue";
 
-const handleKys = (e: any) => {
-  store.dispatch("deleteCard", 1);
+const cardTemplates = store.getters.getCardTemplates;
+const displayAdd = computed(() => store.getters.getAddDisplay);
+const deleteMode = computed(() => store.getters.getDeleteMode);
+
+const toggleAdd = (e: any) => {
+  e.stopPropagation();
+  store.dispatch("setAddDisplay", !displayAdd.value);
+};
+
+const toggleDelete = (e: any) => {
+  e.stopPropagation();
+  store.dispatch("setDeleteMode", !deleteMode.value);
 };
 </script>
 
 <template>
   <div class="whiteboard-controls">
-    <button @click="handleKys">1.</button>
-    <button>2.</button>
-    <button>3.</button>
+    <div v-if="displayAdd" class="whiteboard-controls-add">
+      <CardTemplate
+        v-for="card in cardTemplates"
+        :key="card.id"
+        :card-template="card"
+      />
+    </div>
+    <div class="whiteboard-controls-buttons">
+      <button @click="toggleAdd">+</button>
+      <button
+        :style="{ backgroundColor: deleteMode ? 'red' : '#fff' }"
+        @click="toggleDelete"
+      >
+        -
+      </button>
+      <button>3.</button>
+    </div>
   </div>
 </template>
 
 <style lang="scss">
 .whiteboard-controls {
   position: absolute;
-  width: 200px;
+  display: flex;
+  flex-direction: column;
+  width: 300px;
   bottom: 40px;
-  left: calc(50% - 100px);
+  left: calc(50% - 150px);
+  align-content: flex-end;
+  z-index: 1001;
+}
+.whiteboard-controls-add {
+  background-color: red;
+  width: 300px;
+  height: 150px;
+  flex: 1;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: #eee;
+  border: 1px solid #ddd;
+  overflow-x: scroll;
+}
+.whiteboard-controls-buttons {
+  flex: 1;
+
+  button {
+    width: 40px;
+    height: 40px;
+    border: 2px solid rgb(126, 45, 252);
+    border-radius: 4px;
+    margin: 0 2px;
+    background-color: #fff;
+    &:hover {
+      background-color: #ddd;
+      cursor: pointer;
+    }
+  }
 }
 </style>

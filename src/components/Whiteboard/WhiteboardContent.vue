@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { onBeforeMount, onMounted, computed, ref } from "vue";
-import WhiteboardItem from "./WhiteboardItem.vue";
+import WhiteboardCard from "./WhiteboardCard.vue";
 import store from "@/store";
 
 const content = ref();
@@ -102,6 +102,12 @@ const props = defineProps({
   },
 });
 
+const handleClick = (e: any) => {
+  e.stopPropagation();
+  store.dispatch("setActiveCard", -1);
+  store.dispatch("setAddDisplay", false);
+};
+
 onMounted(() => {
   checkIfDraggable();
   store.commit("setXBoard", centerContent("x"));
@@ -119,10 +125,11 @@ onMounted(() => {
       left: `${whiteboard.x}px`,
       top: `${whiteboard.y}px`,
     }"
+    @click="handleClick"
     @dragstart="contentDragStart"
     @dragend="contentDragEnd"
   >
-    <WhiteboardItem
+    <WhiteboardCard
       v-for="card in whiteboardCards"
       :key="card.id"
       :card="card"
