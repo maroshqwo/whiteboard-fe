@@ -31,7 +31,7 @@ const possition = (axis: string, pos: number) => {
 const itemDragStart = (e: any) => {
   e.stopPropagation();
   if (deleteMode.value) return;
-  store.dispatch("setActiveCard", card.value.id);
+  if (!card.value.active) store.dispatch("setActiveCard", card.value.id);
   item.value.classList.add("dragging");
   mouseCoords.x = e.clientX;
   mouseCoords.y = e.clientY;
@@ -43,17 +43,11 @@ const itemDragEnd = (e: any) => {
   item.value.classList.remove("dragging");
   store.dispatch("setXCard", {
     id: card.value.id,
-    x: possition(
-      "x",
-      getNumberFromPx(item.value.style.left) + e.clientX - mouseCoords.x
-    ),
+    x: e.clientX - mouseCoords.x,
   });
   store.dispatch("setYCard", {
     id: card.value.id,
-    y: possition(
-      "y",
-      getNumberFromPx(item.value.style.top) + e.clientY - mouseCoords.y
-    ),
+    y: e.clientY - mouseCoords.y,
   });
 };
 
@@ -85,7 +79,11 @@ const handleClick = (e: any) => {
   if (deleteMode.value) {
     store.dispatch("deleteCard", card.value.id);
   } else {
-    store.dispatch("setActiveCard", card.value.id);
+    if (e.ctrlKey) {
+      store.dispatch("toggleAddActiveCard", card.value.id);
+    } else {
+      store.dispatch("setActiveCard", card.value.id);
+    }
   }
 };
 const handleDoubleClick = (e: any) => {

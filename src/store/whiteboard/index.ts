@@ -1,4 +1,4 @@
-import { WhiteboardState, Card, CardTemplate } from "@/types";
+import { WhiteboardState, Card, CardTemplate, Group } from "@/types";
 
 const WhiteboardModule = {
   state: (): WhiteboardState => ({
@@ -59,6 +59,7 @@ const WhiteboardModule = {
       x: 0,
       y: 0,
     },
+    groups: [],
   }),
   mutations: {
     addCard(state: WhiteboardState, card: Card) {
@@ -75,7 +76,29 @@ const WhiteboardModule = {
       content.text = payload.newText;
     },
     deleteCard(state: WhiteboardState, id: number) {
+      state.groups = state.groups.map((g) => {
+        return {
+          ...g,
+          cards: g.cards.filter((c) => c.id !== id),
+        };
+      });
       state.cards = state.cards.filter((c) => c.id !== id);
+    },
+    deleteSelected(state: WhiteboardState) {
+      state.cards = state.cards.filter((c) => !c.active);
+    },
+    toggleAddActiveCard(state: WhiteboardState, id: number) {
+      const card = state.cards.find((c) => c.id === id);
+      if (!card) return;
+      card.active = !card.active;
+    },
+    addActiveCard(state: WhiteboardState, id: number) {
+      state.cards = state.cards.map((c) => {
+        if (c.id === id) {
+          c.active = true;
+        }
+        return c;
+      });
     },
     setActiveCard(state: WhiteboardState, id: number) {
       state.cards = state.cards.map((c) => {
@@ -148,10 +171,39 @@ const WhiteboardModule = {
     setYBoard(state: WhiteboardState, y: number) {
       state.board.y = y;
     },
+    addGroup(state: WhiteboardState, group: Group) {
+      state.groups.push(group);
+    },
+    debug(state: WhiteboardState, id: number) {
+      state.cards.forEach((c) => {
+        if (c.id === id) {
+          c.x = state.board.width / 2 - c.width / 2;
+          c.y = state.board.height / 2 - c.height / 2;
+        }
+      });
+    },
+    deleteGroup(state: WhiteboardState, id: number) {
+      state.groups = state.groups.filter((g) => g.id !== id);
+    },
+    deletePointlessGroups(state: WhiteboardState) {
+      state.groups = state.groups.filter((g) => g.cards.length > 1);
+    },
+    changeGroupName(
+      state: WhiteboardState,
+      { id, name }: { id: number; name: string }
+    ) {
+      state.groups = state.groups
+        .map((g) => {
+          if (g.id === id) {
+            g.name = name;
+          }
+          return g;
+        })
+        .filter((g) => g.name.length > 0);
+    },
   },
   actions: {
     addCard(context: any, card: CardTemplate) {
-      console.log(context.state.cards);
       let newID = 0;
       context.state.cards.forEach((element: Card) => {
         if (element.id >= newID) {
@@ -191,6 +243,53 @@ const WhiteboardModule = {
     },
     deleteCard(context: any, id: number) {
       context.commit("deleteCard", id);
+      context.commit("deletePointlessGroups");
+    },
+    deleteSelected(context: any) {
+      context.commit("deleteSelected");
+      context.commit("deletePointlessGroups");
+    },
+    addGroup(context: any) {
+      let newID = -1;
+      context.state.groups.forEach((group: any) => {
+        if (group.id >= newID) {
+          newID = group.id + 1;
+        }
+      });
+      let newGroup = {
+        id: newID,
+        name: "GRP-" + newID,
+        cards: [] as Card[],
+      };
+      context.state.cards.forEach((card: Card) => {
+        if (card.active) {
+          newGroup.cards.push(card);
+        }
+      });
+      if (newGroup.cards.length <= 1) return;
+      context.commit("addGroup", newGroup);
+    },
+    disgroup(context: any, id: number) {
+      context.commit("deleteGroup", id);
+    },
+    deleteGroup(context: any, id: number) {
+      let deletedGroup = context.state.groups.find((g: any) => g.id === id);
+      if (!deletedGroup) return;
+      context.state.cards.forEach((c: any) => {
+        deletedGroup!.cards.forEach((d: any) => {
+          if (c.id === d.id) {
+            context.commit("deleteCard", c.id);
+          }
+        });
+      });
+      context.commit("deleteGroup", id);
+      context.commit("deletePointlessGroups");
+    },
+    toggleAddActiveCard(context: any, id: number) {
+      context.commit("toggleAddActiveCard", id);
+    },
+    addActiveCard(context: any, id: number) {
+      context.commit("addActiveCard", id);
     },
     setActiveCard(context: any, id: number) {
       context.commit("setActiveCard", id);
@@ -199,10 +298,18 @@ const WhiteboardModule = {
       context.commit("setEditCard", id);
     },
     setXCard(context: any, { id, x }: { id: number; x: number }) {
-      context.commit("setXCard", { id, x });
+      context.state.cards.forEach((c: Card) => {
+        if (c.active) {
+          context.commit("setXCard", { id: c.id, x: c.x + x });
+        }
+      });
     },
     setYCard(context: any, { id, y }: { id: number; y: number }) {
-      context.commit("setYCard", { id, y });
+      context.state.cards.forEach((c: Card) => {
+        if (c.active) {
+          context.commit("setYCard", { id: c.id, y: c.y + y });
+        }
+      });
     },
     setWidthCard(context: any, { id, width }: { id: number; width: number }) {
       context.commit("setWidthCard", { id, width });
@@ -225,6 +332,12 @@ const WhiteboardModule = {
     setHeightBoard(context: any, height: number) {
       context.commit("setHeightBoard", height);
     },
+    debug(context: any, id: number) {
+      context.commit("debug", id);
+    },
+    changeGroupName(context: any, { id, name }: { id: number; name: string }) {
+      context.commit("changeGroupName", { id, name });
+    },
   },
   getters: {
     getCards(state: WhiteboardState) {
@@ -232,6 +345,9 @@ const WhiteboardModule = {
     },
     getBoard(state: WhiteboardState) {
       return state.board;
+    },
+    getGroups(state: WhiteboardState) {
+      return state.groups;
     },
   },
 };

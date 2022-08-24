@@ -16,6 +16,16 @@ const toggleDelete = (e: any) => {
   e.stopPropagation();
   store.dispatch("setDeleteMode", !deleteMode.value);
 };
+
+const handleCreateGroup = (e: any) => {
+  e.stopPropagation();
+  store.dispatch("addGroup");
+};
+
+const deleteSelected = (e: any) => {
+  e.stopPropagation();
+  store.dispatch("deleteSelected");
+};
 </script>
 
 <template>
@@ -35,7 +45,8 @@ const toggleDelete = (e: any) => {
       >
         -
       </button>
-      <button>3.</button>
+      <button @click="handleCreateGroup">GRP</button>
+      <button @click="deleteSelected">DEL</button>
     </div>
   </div>
 </template>

@@ -2,12 +2,14 @@
 import { onBeforeMount, onMounted, computed, ref } from "vue";
 import store from "@/store";
 import WhiteboardDrawerCard from "@/components/Whiteboard/WhiteboardDrawerCard.vue";
+import WhiteboardDrawerGroup from "./WhiteboardDrawerGroup.vue";
 
 const show = ref(false);
 const displayCards = ref(false);
 const displayGroups = ref(false);
+const groups = computed(() => store.getters.getGroups);
 // sort cards by z-index
-const cards = computed(() => {
+const cardsSorted = computed(() => {
   return store.getters.getCards.sort((a: any, b: any) => {
     return b.zIndex - a.zIndex;
   });
@@ -23,6 +25,25 @@ const toggleDisplayCards = () => {
 
 const toggleDisplayGroups = () => {
   displayGroups.value = !displayGroups.value;
+};
+
+const moveUp = (id: number) => {
+  cardsSorted.value.forEach((card: any, index: number) => {
+    if (card.id === id && index != 0) {
+      let prevZIndex = card.zIndex;
+      card.zIndex = cardsSorted.value[index - 1].zIndex;
+      cardsSorted.value[index - 1].zIndex = prevZIndex;
+    }
+  });
+};
+const moveDown = (id: number) => {
+  cardsSorted.value.forEach((card: any, index: number) => {
+    if (card.id === id && index != cardsSorted.value.length - 1) {
+      let prevZIndex = card.zIndex;
+      card.zIndex = cardsSorted.value[index + 1].zIndex;
+      cardsSorted.value[index + 1].zIndex = prevZIndex;
+    }
+  });
 };
 </script>
 
@@ -44,9 +65,11 @@ const toggleDisplayGroups = () => {
       </h2>
       <div v-if="displayCards">
         <WhiteboardDrawerCard
-          v-for="card in cards"
+          v-for="card in cardsSorted"
           :key="card.id"
           :card="card"
+          :move-up="moveUp"
+          :move-down="moveDown"
         />
       </div>
       <h2>
@@ -54,6 +77,13 @@ const toggleDisplayGroups = () => {
           {{ displayGroups ? "👇" : "👈" }}
         </button>
       </h2>
+      <div>
+        <WhiteboardDrawerGroup
+          v-for="group in groups"
+          :key="group.id"
+          :group="group"
+        />
+      </div>
     </div>
   </div>
 </template>

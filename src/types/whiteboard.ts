@@ -1,6 +1,7 @@
 export type WhiteboardState = {
   cards: Card[];
   board: Board;
+  groups: Group[];
 };
 
 export type WhiteboardUtilState = {
@@ -31,6 +32,12 @@ export type Card = {
   boardId: number;
   zIndex: number;
   type: CardType;
+};
+
+export type Group = {
+  id: number;
+  name: string;
+  cards: Card[];
 };
 
 export type CardContent = {

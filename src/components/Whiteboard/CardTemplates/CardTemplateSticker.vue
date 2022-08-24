@@ -41,11 +41,14 @@ const card = computed<CardTemplate>(() => props.card as CardTemplate);
 .card-body {
   text-align: left;
   margin: 0;
+  max-width: 72px;
+  overflow: hidden;
+  max-height: 40px;
 }
 .card-text {
   line-height: 7px;
   letter-spacing: -0.5px;
-  white-space: nowrap;
+  line-break: anywhere;
   text-align: left;
   font-size: 10px;
 }

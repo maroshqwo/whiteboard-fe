@@ -47,6 +47,7 @@ const possition = (axis: string, pos: number) => {
 
 const resizeStart = (e: any) => {
   e.stopPropagation();
+  store.dispatch("setActiveCard", card.value.id);
   mouseCoords.x = e.clientX;
   mouseCoords.y = e.clientY;
 };
@@ -77,9 +78,9 @@ const resizeEnd = async (e: any) => {
         id: card.value.id,
         height: heightBefore + (e.clientY - mouseCoords.y),
       });
-      store.dispatch("setYCard", {
+      store.dispatch("setXCard", {
         id: card.value.id,
-        y: possition("y", yBefore),
+        x: e.clientX - mouseCoords.x,
       });
     }
     if (e.target.classList.contains("lt")) {
@@ -93,11 +94,11 @@ const resizeEnd = async (e: any) => {
       });
       store.dispatch("setXCard", {
         id: card.value.id,
-        x: possition("x", xBefore + (e.clientX - mouseCoords.x)),
+        x: e.clientX - mouseCoords.x,
       });
       store.dispatch("setYCard", {
         id: card.value.id,
-        y: possition("y", yBefore + (e.clientY - mouseCoords.y)),
+        y: e.clientY - mouseCoords.y,
       });
     }
     if (e.target.classList.contains("rt")) {
@@ -109,29 +110,25 @@ const resizeEnd = async (e: any) => {
         id: card.value.id,
         height: heightBefore - (e.clientY - mouseCoords.y),
       });
-      store.dispatch("setXCard", {
+      store.dispatch("setYCard", {
         id: card.value.id,
-        x: possition("x", xBefore),
+        y: e.clientY - mouseCoords.y,
       });
     }
     if (e.target.classList.contains("t")) {
       await store.dispatch("setHeightCard", {
         id: card.value.id,
-        height: widthBefore - (e.clientY - mouseCoords.y),
+        height: heightBefore - (e.clientY - mouseCoords.y),
       });
       store.dispatch("setYCard", {
         id: card.value.id,
-        y: possition("y", yBefore + (e.clientY - mouseCoords.y)),
+        y: e.clientY - mouseCoords.y,
       });
     }
     if (e.target.classList.contains("b")) {
       await store.dispatch("setHeightCard", {
         id: card.value.id,
         height: heightBefore + (e.clientY - mouseCoords.y),
-      });
-      store.dispatch("setYCard", {
-        id: card.value.id,
-        y: possition("y", yBefore),
       });
     }
     if (e.target.classList.contains("l")) {
@@ -141,17 +138,13 @@ const resizeEnd = async (e: any) => {
       });
       store.dispatch("setXCard", {
         id: card.value.id,
-        x: possition("x", xBefore + (e.clientX - mouseCoords.x)),
+        x: e.clientX - mouseCoords.x,
       });
     }
     if (e.target.classList.contains("r")) {
       await store.dispatch("setWidthCard", {
         id: card.value.id,
         width: widthBefore + (e.clientX - mouseCoords.x),
-      });
-      store.dispatch("setXCard", {
-        id: card.value.id,
-        x: possition("x", xBefore),
       });
     }
   }
@@ -196,7 +189,7 @@ const resizeEnd = async (e: any) => {
       });
       store.dispatch("setXCard", {
         id: card.value.id,
-        x: possition("x", xBefore + (e.clientX - mouseCoords.x)),
+        x: e.clientX - mouseCoords.x,
       });
     }
     if (e.target.classList.contains("lt")) {
@@ -218,11 +211,11 @@ const resizeEnd = async (e: any) => {
       });
       store.dispatch("setXCard", {
         id: card.value.id,
-        x: possition("x", xBefore + (e.clientX - mouseCoords.x)),
+        x: e.clientX - mouseCoords.x,
       });
       store.dispatch("setYCard", {
         id: card.value.id,
-        y: possition("y", yBefore + (e.clientY - mouseCoords.y)),
+        y: e.clientY - mouseCoords.y,
       });
     }
     if (e.target.classList.contains("rt")) {
@@ -244,7 +237,7 @@ const resizeEnd = async (e: any) => {
       });
       store.dispatch("setYCard", {
         id: card.value.id,
-        y: possition("y", yBefore + (e.clientY - mouseCoords.y)),
+        y: e.clientY - mouseCoords.y,
       });
     }
     if (e.target.classList.contains("t")) {
@@ -258,7 +251,7 @@ const resizeEnd = async (e: any) => {
       });
       store.dispatch("setYCard", {
         id: card.value.id,
-        y: possition("y", yBefore + (e.clientY - mouseCoords.y)),
+        y: e.clientY - mouseCoords.y,
       });
     }
     if (e.target.classList.contains("b")) {
@@ -282,7 +275,7 @@ const resizeEnd = async (e: any) => {
       });
       store.dispatch("setXCard", {
         id: card.value.id,
-        x: possition("x", xBefore + (e.clientX - mouseCoords.x)),
+        x: e.clientX - mouseCoords.x,
       });
     }
     if (e.target.classList.contains("r")) {

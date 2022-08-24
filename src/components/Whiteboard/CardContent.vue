@@ -62,5 +62,7 @@ const content = computed((): CardContent => {
 <style lang="scss">
 .cardContent {
   position: absolute;
+  text-align: left;
+  line-break: anywhere;
 }
 </style>

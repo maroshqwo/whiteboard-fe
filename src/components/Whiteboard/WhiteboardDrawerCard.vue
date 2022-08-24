@@ -9,21 +9,55 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  moveUp: {
+    type: Function,
+    required: true,
+  },
+  moveDown: {
+    type: Function,
+    required: true,
+  },
 });
 
 const card = computed(() => props.card);
 
-const handleDelete = () => {
+const handleDelete = (e: any) => {
+  e.stopPropagation();
   store.dispatch("deleteCard", props.card.id);
 };
 
-const handleDebug = () => {
-  console.log("Visual filler, no need debug cuz no bugs 😎");
+const handleDebug = (e: any) => {
+  e.stopPropagation();
+  store.dispatch("debug", props.card.id);
+};
+
+const handleClick = (e: any) => {
+  e.stopPropagation();
+
+  if (e.ctrlKey) {
+    store.dispatch("toggleAddActiveCard", card.value.id);
+  } else {
+    store.dispatch("setActiveCard", card.value.id);
+  }
+};
+
+const handleUp = (e: any) => {
+  e.stopPropagation();
+  props.moveUp(card.value.id);
+};
+
+const handleDown = (e: any) => {
+  e.stopPropagation();
+  props.moveDown(card.value.id);
 };
 </script>
 
 <template>
-  <div class="whiteboard-drawer-card" :class="card.active ? 'active' : ''">
+  <div
+    class="whiteboard-drawer-card"
+    :class="card.active ? 'active' : ''"
+    @click="handleClick"
+  >
     <div class="preview">
       <div v-if="props.card.type === 'emoji'">
         <CardTemplateEmoji :card="props.card" />
@@ -38,12 +72,18 @@ const handleDebug = () => {
       <span>color: <input v-model="card.color" /> </span>
     </div>
     <div class="utils">
-      <button class="customButton debugButton" @click="handleDebug">
-        DEBUG
-      </button>
-      <button class="customButton deleteButton" @click="handleDelete">
-        DELETE
-      </button>
+      <div>
+        <button class="customButton debugButton" @click="handleDebug">
+          DEBUG
+        </button>
+        <button class="zIndexModifier" @click="handleUp">👆</button>
+      </div>
+      <div>
+        <button class="customButton deleteButton" @click="handleDelete">
+          DELETE
+        </button>
+        <button class="zIndexModifier" @click="handleDown">👇</button>
+      </div>
     </div>
   </div>
 </template>
@@ -92,14 +132,11 @@ const handleDebug = () => {
   align-items: flex-end;
 }
 .customButton {
-  background-color: #eee;
-  border: 1px solid #ccc;
   border-radius: 4px;
   margin: 4px;
   padding: 4px;
   height: 40px;
   width: 64px;
-  margin: 4px;
   cursor: pointer;
   outline: none;
   border: none;
@@ -110,5 +147,20 @@ const handleDebug = () => {
 }
 .debugButton {
   background-color: rgb(149, 149, 206);
+}
+.zIndexModifier {
+  background-color: transparent;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 20px;
+  cursor: pointer;
+  height: px;
+  padding: 4px;
+  outline: none;
+  border: none;
+
+  &:first-child {
+    margin-top: 8px;
+  }
 }
 </style>
