@@ -2,12 +2,15 @@ export type WhiteboardState = {
   cards: Card[];
   board: Board;
   groups: Group[];
+  lines: Line[];
 };
 
 export type WhiteboardUtilState = {
   cardTemplates: CardTemplate[];
   addDisplay: boolean;
   deleteMode: boolean;
+  createLineStart: { id: number; pos: string } | null;
+  createLineEnd: { id: number; pos: string } | null;
 };
 
 export type CardTemplate = {
@@ -56,4 +59,11 @@ export type Board = {
   height: number;
   x: number;
   y: number;
+};
+
+export type Line = {
+  id: number;
+  start: { x: number; y: number };
+  end: { x: number; y: number };
+  cards: number[];
 };

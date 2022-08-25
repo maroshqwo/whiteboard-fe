@@ -10,10 +10,6 @@ const mouseCoords = {
 };
 
 const props = defineProps({
-  id: {
-    type: Number,
-    required: true,
-  },
   card: {
     type: Object,
     required: true,

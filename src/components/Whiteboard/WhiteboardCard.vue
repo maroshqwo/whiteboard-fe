@@ -3,10 +3,11 @@ import { ref, onMounted, computed } from "vue";
 import store from "@/store";
 import { Card } from "@/types";
 import { createDOMCompilerError } from "@vue/compiler-dom";
-import ItemResizable from "./ItemResizable.vue";
+import CardResizable from "./CardResizable.vue";
 import { getNumberFromPx } from "@/utils";
 import CardContent from "@/components/Whiteboard/CardContent.vue";
 import Emoji from "@/components/Whiteboard/Emoji.vue";
+import CardLineArrow from "@/components/Whiteboard/CardLineArrow.vue";
 
 const item = ref();
 const whiteboard = computed(() => store.getters.getBoard);
@@ -14,18 +15,6 @@ const deleteMode = computed(() => store.getters.getDeleteMode);
 const mouseCoords = {
   x: 0,
   y: 0,
-};
-
-const possition = (axis: string, pos: number) => {
-  if (axis === "x") {
-    if (pos < 24 - card.value.width) return 24 - card.value.width;
-    if (pos > whiteboard.value.width - 24) return whiteboard.value.width - 24;
-    return pos;
-  } else {
-    if (pos < 36 - card.value.height) return 24 - card.value.height;
-    if (pos > whiteboard.value.height - 24) return whiteboard.value.height - 24;
-    return pos;
-  }
 };
 
 const itemDragStart = (e: any) => {
@@ -128,7 +117,8 @@ const handleDiscard = (e: any) => {
     <div v-if="card.type === 'emoji'">
       <Emoji ref="contentRef" :card="card" :edit="card.edit" />
     </div>
-    <ItemResizable :id="card.id" :card="card" :square="card.type === 'emoji'" />
+    <CardResizable :card="card" :square="card.type === 'emoji'" />
+    <CardLineArrow :card="card" />
     <div v-if="card.edit" class="edit-buttons">
       <button class="save" @click="handleSave">SAVE</button>
       <button class="discard" @click="handleDiscard">DISCARD</button>

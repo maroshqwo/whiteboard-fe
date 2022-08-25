@@ -1,4 +1,31 @@
-import { WhiteboardState, Card, CardTemplate, Group } from "@/types";
+import { WhiteboardState, Card, CardTemplate, Group, Line } from "@/types";
+
+const getLineXY = (card: Card, pos: string) => {
+  if (pos === "t") {
+    return {
+      x: card.x + card.width / 2,
+      y: card.y,
+    };
+  }
+  if (pos === "b") {
+    return {
+      x: card.x + card.width / 2,
+      y: card.y + card.height,
+    };
+  }
+  if (pos === "l") {
+    return {
+      x: card.x,
+      y: card.y + card.height / 2,
+    };
+  }
+  if (pos === "r") {
+    return {
+      x: card.x + card.width,
+      y: card.y + card.height / 2,
+    };
+  }
+};
 
 const WhiteboardModule = {
   state: (): WhiteboardState => ({
@@ -30,7 +57,7 @@ const WhiteboardModule = {
       {
         id: 2,
         width: 100,
-        height: 200,
+        height: 100,
         color: "transparent",
         x: 400,
         y: 300,
@@ -60,6 +87,7 @@ const WhiteboardModule = {
       y: 0,
     },
     groups: [],
+    lines: [],
   }),
   mutations: {
     addCard(state: WhiteboardState, card: Card) {
@@ -201,7 +229,61 @@ const WhiteboardModule = {
         })
         .filter((g) => g.name.length > 0);
     },
+    addLine(state: WhiteboardState, line: Line) {
+      state.lines.push(line);
+    },
+    adjustLine(
+      state: WhiteboardState,
+      {
+        id,
+        x,
+        y,
+        start,
+      }: {
+        id: number;
+        x: number | undefined;
+        y: number | undefined;
+        start: boolean;
+      }
+    ) {
+      if (start && x) {
+        state.lines = state.lines.map((l) => {
+          if (l.id === id) {
+            l.start.x = x;
+          }
+          return l;
+        });
+      }
+      if (start && y) {
+        state.lines = state.lines.map((l) => {
+          if (l.id === id) {
+            l.start.y = y;
+          }
+          return l;
+        });
+      }
+      if (!start && x) {
+        state.lines = state.lines.map((l) => {
+          if (l.id === id) {
+            l.end.x = x;
+          }
+          return l;
+        });
+      }
+      if (!start && y) {
+        state.lines = state.lines.map((l) => {
+          if (l.id === id) {
+            l.end.y = y;
+          }
+          return l;
+        });
+      }
+    },
+    deleteLine(state: WhiteboardState, id: number) {
+      state.lines = state.lines.filter((l) => l.id !== id);
+    },
   },
+
   actions: {
     addCard(context: any, card: CardTemplate) {
       let newID = 0;
@@ -303,6 +385,21 @@ const WhiteboardModule = {
           context.commit("setXCard", { id: c.id, x: c.x + x });
         }
       });
+      context.state.lines.forEach((l: Line) => {
+        if (l.cards[0] === id) {
+          context.commit("adjustLine", {
+            id: l.id,
+            x: l.start.x + x,
+            start: true,
+          });
+        } else if (l.cards[1] === id) {
+          context.commit("adjustLine", {
+            id: l.id,
+            x: l.end.x + x,
+            start: false,
+          });
+        }
+      });
     },
     setYCard(context: any, { id, y }: { id: number; y: number }) {
       context.state.cards.forEach((c: Card) => {
@@ -310,15 +407,67 @@ const WhiteboardModule = {
           context.commit("setYCard", { id: c.id, y: c.y + y });
         }
       });
+      context.state.lines.forEach((l: Line) => {
+        if (l.cards[0] === id) {
+          context.commit("adjustLine", {
+            id: l.id,
+            y: l.start.y + y,
+            start: true,
+          });
+        } else if (l.cards[1] === id) {
+          context.commit("adjustLine", {
+            id: l.id,
+            y: l.end.y + y,
+            start: false,
+          });
+        }
+      });
     },
     setWidthCard(context: any, { id, width }: { id: number; width: number }) {
+      let widthBefore = context.state.cards.find(
+        (c: Card) => c.id === id
+      )!.width;
       context.commit("setWidthCard", { id, width });
+      context.state.lines.forEach((l: Line) => {
+        if (l.cards[0] === id) {
+          context.commit("adjustLine", {
+            id: l.id,
+            x: l.start.x + (width - widthBefore) / 2,
+            start: true,
+          });
+        } else if (l.cards[1] === id) {
+          context.commit("adjustLine", {
+            id: l.id,
+            x: l.end.x + (width - widthBefore) / 2,
+            start: false,
+          });
+        }
+      });
     },
     setHeightCard(
       context: any,
       { id, height }: { id: number; height: number }
     ) {
+      let heightBefore = context.state.cards.find(
+        (c: Card) => c.id === id
+      )!.height;
       context.commit("setHeightCard", { id, height });
+
+      context.state.lines.forEach((l: Line) => {
+        if (l.cards[0] === id) {
+          context.commit("adjustLine", {
+            id: l.id,
+            y: l.start.y + (height - heightBefore) / 2,
+            start: true,
+          });
+        } else if (l.cards[1] === id) {
+          context.commit("adjustLine", {
+            id: l.id,
+            y: l.end.y + (height - heightBefore) / 2,
+            start: false,
+          });
+        }
+      });
     },
     setXBoard(context: any, x: number) {
       context.commit("setXBoard", x);
@@ -338,6 +487,36 @@ const WhiteboardModule = {
     changeGroupName(context: any, { id, name }: { id: number; name: string }) {
       context.commit("changeGroupName", { id, name });
     },
+    createLine(
+      context: any,
+      {
+        start,
+        end,
+      }: {
+        start: { id: number; pos: string };
+        end: { id: number; pos: string };
+      }
+    ) {
+      let cardFrom = context.state.cards.find((c: Card) => c.id === start.id);
+      let cardTo = context.state.cards.find((c: Card) => c.id === end.id);
+      let lineStart = getLineXY(cardFrom, start.pos);
+      let lineEnd = getLineXY(cardTo, end.pos);
+      let newId = 0;
+      context.state.lines.forEach((line: Line) => {
+        if (line.id >= newId) {
+          newId = line.id + 1;
+        }
+      });
+      context.commit("addLine", {
+        id: newId,
+        start: lineStart,
+        end: lineEnd,
+        cards: [cardFrom.id, cardTo.id],
+      });
+    },
+    deleteLine(context: any, id: number) {
+      context.commit("deleteLine", id);
+    },
   },
   getters: {
     getCards(state: WhiteboardState) {
@@ -348,6 +527,14 @@ const WhiteboardModule = {
     },
     getGroups(state: WhiteboardState) {
       return state.groups;
+    },
+    getLines(state: WhiteboardState) {
+      return state.lines;
+    },
+    getLineById(state: WhiteboardState) {
+      return (id: number) => {
+        return state.lines.find((line: Line) => line.id === id);
+      };
     },
   },
 };

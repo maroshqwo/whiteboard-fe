@@ -96,8 +96,8 @@ const toggleEditGroupName = (e: any) => {
       </div>
     </div>
     <div class="info">
-      <span :style="{ fontWeight: 'bold' }" @dblclick="toggleEditGroupName"
-        >{{ !editGroupName ? props.group.name : ""
+      <span :style="{ fontWeight: 'bold' }" @dblclick="toggleEditGroupName">
+        {{ !editGroupName ? props.group.name : ""
         }}<input
           v-if="editGroupName"
           v-model="groupName"

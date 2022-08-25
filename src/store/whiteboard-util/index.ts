@@ -47,6 +47,8 @@ const WhiteboardUtilModule = {
     ],
     addDisplay: false,
     deleteMode: false,
+    createLineStart: null,
+    createLineEnd: null,
   }),
   mutations: {
     setAddDisplay(state: WhiteboardUtilState, value: boolean) {
@@ -55,6 +57,18 @@ const WhiteboardUtilModule = {
     setDeleteMode(state: WhiteboardUtilState, value: boolean) {
       state.deleteMode = value;
     },
+    setCreateLineStart(
+      state: WhiteboardUtilState,
+      value: { id: number; pos: string }
+    ) {
+      state.createLineStart = value;
+    },
+    setCreateLineEnd(
+      state: WhiteboardUtilState,
+      value: { id: number; pos: string }
+    ) {
+      state.createLineEnd = value;
+    },
   },
   actions: {
     setAddDisplay(context: any, display: boolean) {
@@ -62,6 +76,15 @@ const WhiteboardUtilModule = {
     },
     setDeleteMode(context: any, deleteMode: boolean) {
       context.commit("setDeleteMode", deleteMode);
+    },
+    setCreateLineStart(
+      context: any,
+      value: { id: number; pos: string } | null
+    ) {
+      context.commit("setCreateLineStart", value);
+    },
+    setCreateLineEnd(context: any, value: { id: number; pos: string } | null) {
+      context.commit("setCreateLineEnd", value);
     },
   },
   getters: {
@@ -73,6 +96,12 @@ const WhiteboardUtilModule = {
     },
     getDeleteMode(state: WhiteboardUtilState) {
       return state.deleteMode;
+    },
+    getCreateLineStart(state: WhiteboardUtilState) {
+      return state.createLineStart;
+    },
+    getCreateLineEnd(state: WhiteboardUtilState) {
+      return state.createLineEnd;
     },
   },
 };

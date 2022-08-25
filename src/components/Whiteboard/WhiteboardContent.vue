@@ -2,6 +2,7 @@
 import { onBeforeMount, onMounted, computed, ref } from "vue";
 import WhiteboardCard from "./WhiteboardCard.vue";
 import store from "@/store";
+import Lines from "@/components/Whiteboard/Lines.vue";
 
 const content = ref();
 const whiteboardCards = computed(() => store.getters.getCards);
@@ -134,6 +135,7 @@ onMounted(() => {
       :key="card.id"
       :card="card"
     />
+    <Lines />
   </div>
 </template>
 
